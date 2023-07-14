@@ -61,4 +61,17 @@ class TaskController extends Controller
 
         return response()->json($tasks);
     }
+
+    public function status(Request $request, $id)
+    {
+        $task = Task::find($id);
+
+        if ($task) {
+            $task->completed = $request->input('status') == 'completed' ? 1 : 0;
+            $task->save();
+            return response()->json($task);
+        } else {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+    }
 }

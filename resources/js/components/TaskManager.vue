@@ -9,6 +9,12 @@
           <h3 class="mb-2">{{ task.title }}</h3>
           <p class="mb-1">{{ task.description }}</p>
           <p class="mb-2">Due Date: {{ task.due_date }}</p>
+          <div class="btn-group" role="group">
+            <input type="radio" :id="'status'+task.id+'Open'" v-model="task.status" :value="'open'" :name="'status'+task.id" @change="updateTaskStatus(task)" class="btn-check" autocomplete="off">
+            <label :for="'status'+task.id+'Open'" class="btn btn-outline-primary" :class="{ active: task.completed === 0 }">Open</label>
+            <input type="radio" :id="'status'+task.id+'Completed'" v-model="task.status" :value="'completed'" :name="'status'+task.id" @change="updateTaskStatus(task)" class="btn-check" autocomplete="off">
+            <label :for="'status'+task.id+'Completed'" class="btn btn-outline-success" :class="{ active: task.completed === 1 }">Completed</label>
+          </div>
           <button @click="deleteTask(task.id)" class="btn btn-danger mx-2">Delete</button>
           <button @click="editTask(task)" class="btn btn-primary">Edit</button>
         </li>
@@ -22,6 +28,12 @@
         </div>
         <div class="form-group my-2">
           <input v-model="editingTask.due_date" type="date" required class="form-control" />
+        </div>
+        <div class="btn-group" role="group">
+          <input type="radio" :id="'editStatus'+editingTask.id+'Open'" v-model="editingTask.status" :value="'open'" :name="'editStatus'+editingTask.id" class="btn-check" autocomplete="off">
+          <label :for="'editStatus'+editingTask.id+'Open'" class="btn btn-outline-primary">Open</label>
+          <input type="radio" :id="'editStatus'+editingTask.id+'Completed'" v-model="editingTask.status" :value="'completed'" :name="'editStatus'+editingTask.id" class="btn-check" autocomplete="off">
+          <label :for="'editStatus'+editingTask.id+'Completed'" class="btn btn-outline-success">Completed</label>
         </div>
         <button type="submit" class="btn btn-primary">Update Task</button>
         <button @click="cancelEdit" class="btn btn-secondary">Cancel</button>
@@ -135,6 +147,26 @@ export default {
     cancelEdit() {
       this.editingTask = null;
     },
+    updateTaskStatus(task) {
+    this.isLoading = true;
+    const formData = new FormData();
+    formData.append('status', task.status);
+    axios
+    .post(`/api/tasks-status/${task.id}`, formData)
+      .then(() => {
+        this.isLoading = false;
+          const updatedTaskIndex = this.tasks.findIndex((t) => t.id === task.id);
+          if (updatedTaskIndex !== -1) {
+            this.tasks[updatedTaskIndex].status = task.status;
+          }
+
+      })
+      .catch((error) => {
+        console.error(error);
+        this.isLoading = false;
+      });
+  },
+
   },
   mounted() {
     this.getTasks();
